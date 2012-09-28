@@ -1,0 +1,140 @@
+<html>
+<head>
+<script type="text/javascript" src="jquery-1.8.1.min.js"></script>
+<script type="text/javascript" src="senseapi.js"></script>
+<script type="text/javascript" src="md5hash.js"></script>
+<script type="text/javascript">
+
+var api = new SenseApi();
+var players;
+var matches = new Array();
+
+$(document).ready( function () {
+	$("input#submit_password").click(SubmitPasswordHandler);
+});
+
+function SubmitPasswordHandler () {
+	password = $("input#password").val();
+	pwd_hash = calcMD5(password);
+	
+	if(api.AuthenticateSessionId("sense-foosball", pwd_hash)) {
+		GetPlayerList();
+		GetMatchList();
+		LoadFrontPage();
+		$("p#error").html("");
+	}
+	else {
+		$("p#error").html("Wrong password!");
+	}
+	
+}
+
+function GetPlayerList() {
+//	171759
+	if(api.SensorDataGet(171759, {"last":1})) {
+		players = JSON.parse(JSON.parse(api.resp_data).data[0].value);
+		console.log(players);
+	}
+	else {
+		$("p#error").html("Cant get player list!");
+	}
+}
+
+function GetMatchList() {
+// 171760
+}
+
+function LoadFrontPage () {
+	$("div#interaction").html("<form><input type='button' id='1v1' value='1 V 1'></input></form>   <form><input type='button' id='2v2' value='2 V 2'></input></form>");
+	$("div#interaction").append(GetPlayerRankingHtml());
+	
+//	var html_string = " "+
+//		"<table>"+
+//			"<tr>"+
+//				"<td><form><input type='button' id='1v1' value='1 V 1'></input></form></td>"+
+//				"<td rowspan=2>"+GetPlayerRankingString+"
+					
+	
+	
+	
+
+	$("input#1v1").click(Load1v1Div);
+	$("input#2v2").click(Load2v2Div);
+}
+
+function GetPlayerRankingHtml () {
+	html_string = "<table>";
+	
+	var highest_name;
+	var highest_score = 10000;
+	
+	players = players.sort(players_sort);
+	
+	for (var i=0; i<players.length; i++) {
+		for (var name in players[i]) {
+			html_string += "<tr><td>"+name+"</td><td>"+players[i][name]+"</td></tr>";
+		}
+	}
+	
+	html_string += "</table>";
+	
+	return html_string;
+}
+
+function players_sort (a, b) {
+	for (var name_a in a) {
+		for (var name_b in b) {
+			if (a[name_a] > b[name_b])
+				return -1;
+			else if (a[name_a] < b[name_b])
+				return 1;
+			else
+				return 0;
+		}
+	}
+}
+
+function Load1v1Div () {
+	$("div#interaction").html("<table><tr><td>Player 1</td><td>Player 2</td></tr><tr><td><input type='text' id='player1'/></td><td><input type='text' id='player2'/></td></tr></table><form><input type='button' id='submit1v1' value='submit'></input></form>		");
+	$("button#submit1v1").click(Submit1v1Handler);
+}
+
+function Load2v2Div () {
+	
+}
+
+function Submit1v1Handler () {
+
+}
+
+</script>
+
+<!--
+<style type="text/css">
+#interaction {
+	vertical-align: middle;
+	margin-left: auto;
+    margin-right: auto;
+    width: 200px;
+}
+#header {
+	text-align: center;
+}
+#error {
+	text-color: red;
+}
+</style>
+-->
+
+</head>
+
+<body>
+<h1 id="header">WELCOME TO SENSE FOOSBALL!</h1>
+<p id="error"></p>
+<div id="interaction" class="interaction">
+	<p>Please enter the Sense Foosball password:</p>
+	<input type="text" id="password"></input>
+	<form><input type="button" id="submit_password" value="Submit Password"></input></form>
+</div>
+</body>
+</html
