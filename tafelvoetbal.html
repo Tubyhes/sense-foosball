@@ -42,13 +42,20 @@ function GetPlayerList() {
 }
 
 function GetMatchList() {
-// 171760
+	if(api.SensorDataGet(171760, {"sort":"DESC"})) {
+		matches = JSON.parse(api.resp_data).data;
+		console.log(matches);
+	}
+	else {
+		$("p#error").html("Cant get match history!");
+	}
 }
 
 function LoadFrontPage () {
 	$("div#interaction").html("<form><input type='button' id='1v1' value='1 V 1'></input></form>   <form><input type='button' id='2v2' value='2 V 2'></input></form>");
 	$("div#interaction").append(GetPlayerRankingHtml());
-	
+	$("div#interaction").append(GetMatchHistoryHtml());
+
 //	var html_string = " "+
 //		"<table>"+
 //			"<tr>"+
@@ -60,10 +67,7 @@ function LoadFrontPage () {
 }
 
 function GetPlayerRankingHtml () {
-	html_string = "<table>";
-	
-	var highest_name;
-	var highest_score = 10000;
+	var html_string = "<table cellpadding=5><tr><th>Player Name</th><th>Rating</th></tr>";
 	
 	players = players.sort(players_sort);
 	
@@ -73,6 +77,21 @@ function GetPlayerRankingHtml () {
 	
 	html_string += "</table>";
 	
+	return html_string;
+}
+
+function GetMatchHistoryHtml () {
+	var html_string = "<table cellpadding=5><tr><th>Date</th><th>Team 1</th><th>Team 2</th><th>Score</th></tr>";
+	
+	for(var i=0; i<matches.length; i++) {
+		var date = new Date(parseInt(matches[i].date)*1000);
+		var m = JSON.parse(matches[i].value);
+		console.log(m);
+		html_string += "<tr><td>"+date.toDateString()+"</td><td>"+m.team1.join(", ")+"</td><td>"+m.team2.join(", ")+"</td><td>"+m.score+"</td></tr>";
+	}
+
+	html_string += "</table>";
+		
 	return html_string;
 }
 
@@ -91,7 +110,7 @@ function Load1v1Div () {
 }
 
 function Load2v2Div () {
-	$("div#interaction").html("<table><tr><td>Team 1</td><td><input type='text' id='team1_score'></input></td><td>Team 2</td><td><input type='text' id='team2_score'></input></td></tr><tr><td>Player 1</td><td>Player 2</td><td>Player 3</td><td>Player 4</td></tr><tr><td>"+getPlayerDropbox('player1')+"</td><td>"+getPlayerDropbox('player2')+"</td><td>"+getPlayerDropbox('player3')+"</td><td>"+getPlayerDropbox('player4')+"</td></tr></table><form><input type='button' id='submit1v1' value='submit'></input></form>		");
+	$("div#interaction").html("<table><tr><td>Team 1</td><td><input type='text' id='team1_score'></input></td><td>Team 2</td><td><input type='text' id='team2_score'></input></td></tr><tr><td>Player 1</td><td>Player 2</td><td>Player 3</td><td>Player 4</td></tr><tr><td>"+getPlayerDropbox('player1')+"</td><td>"+getPlayerDropbox('player2')+"</td><td>"+getPlayerDropbox('player3')+"</td><td>"+getPlayerDropbox('player4')+"</td></tr></table><form><input type='button' id='submit2v2' value='submit'></input></form>		");
 	$("input#submit2v2").click(Submit2v2Handler);
 
 }
@@ -109,7 +128,9 @@ function Submit1v1Handler () {
 	var score_t2 = parseInt($("input#team2_score").val());
 	
 	console.log(players[p1].name+" vs "+players[p2].name+": "+score_t1+"-"+score_t2);
-	
+	m = {"team1":[players[p1].name], "team2":[players[p2].name], "score":+score_t1+"-"+score_t2}
+	console.log(m)
+
 	var QA = Math.pow(10, players[p1].rating/400);
 	var QB = Math.pow(10, players[p2].rating/400);
 	var EA = QA/(QA+QB);
@@ -124,11 +145,53 @@ function Submit1v1Handler () {
 	players[p1].rating = RA;
 	players[p2].rating = RB;
 	
+	SubmitMatch(m)	
 	SubmitNewRatings();
 }
 
 function Submit2v2Handler () {
+	var p1 = $("select#player1").val();
+	var p2 = $("select#player2").val();
+	var p3 = $("select#player3").val();
+	var p4 = $("select#player4").val();
 
+	if (p1 == p2 || p1 == p3 || p1 == p4 || p2 == p3 || p2 == p4 || p3 == p4) {
+		alert("Select four different players!");
+		return;
+	}
+
+	var t1 = (players[p1].rating+players[p2].rating)/2
+	var t2 = (players[p3].rating+players[p4].rating)/2
+
+	var score_t1 = parseInt($("input#team1_score").val());
+	var score_t2 = parseInt($("input#team2_score").val());
+	
+	console.log(players[p1].name+" vs "+players[p2].name+": "+score_t1+"-"+score_t2);
+
+	m = {"team1":[players[p1].name, players[p2].name], "team2":[players[p3].name, players[p4].name], "score":+score_t1+"-"+score_t2}
+	console.log(m)
+	
+	var QA = Math.pow(10, t1/400);
+	var QB = Math.pow(10, t2/400);
+	var EA = QA/(QA+QB);
+	var EB = QA/(QA+QB);
+	var SA = (score_t1 > score_t2) ? 1 : 0;
+	var SB = 1 - SA;
+	var mod_team1 = K * (SA - EA);
+	var mod_team2 = K * (SB - EB);
+
+	console.log("QA: "+QA+" EA: "+EA+" SA: "+SA+" mod_team1: "+mod_team1);
+	console.log("QB: "+QB+" EB: "+EB+" SB: "+SB+" mod_team2: "+mod_team2);
+	
+		
+	players[p1].rating += mod_team1/2;
+	players[p2].rating += mod_team1/2;
+	players[p3].rating += mod_team2/2;
+	players[p4].rating += mod_team2/2;
+	
+	console.log(players)
+	SubmitMatch(m);
+	SubmitNewRatings();
 }
 
 function SubmitNewRatings () {
@@ -136,6 +199,13 @@ function SubmitNewRatings () {
 		LoadFrontPage();
 	else 
 		alert("Submitting new rankings failed!");
+}
+
+function SubmitMatch(m) {
+	if (api.SensorDataPost(171760, {"data":[{"value":m}]}))
+		return;
+	else
+		alert("Submitting match failed!");
 }
 
 function getPlayerDropbox (id) {
@@ -176,7 +246,7 @@ function getPlayerDropbox (id) {
 <p id="error"></p>
 <div id="interaction" class="interaction">
 	<p>Please enter the Sense Foosball password:</p>
-	<input type="text" id="password"></input>
+	<input type="password" id="password"></input>
 	<form><input type="button" id="submit_password" value="Submit Password"></input></form>
 </div>
 </body>
