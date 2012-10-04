@@ -129,8 +129,8 @@ function Submit1v1Handler () {
 	var score_t2 = parseInt($("input#team2_score").val());
 	
 	console.log(players[p1].name+" vs "+players[p2].name+": "+score_t1+"-"+score_t2);
-	m = {"team1":[players[p1].name], "team2":[players[p2].name], "score":+score_t1+"-"+score_t2}
-	console.log(m)
+	m = {"team1":[players[p1].name], "team2":[players[p2].name], "score":+score_t1+"-"+score_t2};
+	console.log(m);
 
 	var QA = Math.pow(10, players[p1].rating/400);
 	var QB = Math.pow(10, players[p2].rating/400);
@@ -146,7 +146,7 @@ function Submit1v1Handler () {
 	players[p1].rating = RA;
 	players[p2].rating = RB;
 	
-	SubmitMatch(m)	
+	SubmitMatch(m);
 	SubmitNewRatings();
 }
 
@@ -161,16 +161,16 @@ function Submit2v2Handler () {
 		return;
 	}
 
-	var t1 = (players[p1].rating+players[p2].rating)/2
-	var t2 = (players[p3].rating+players[p4].rating)/2
+	var t1 = (players[p1].rating+players[p2].rating)/2;
+	var t2 = (players[p3].rating+players[p4].rating)/2;
 
 	var score_t1 = parseInt($("input#team1_score").val());
 	var score_t2 = parseInt($("input#team2_score").val());
 	
 	console.log(players[p1].name+" vs "+players[p2].name+": "+score_t1+"-"+score_t2);
 
-	m = {"team1":[players[p1].name, players[p2].name], "team2":[players[p3].name, players[p4].name], "score":+score_t1+"-"+score_t2}
-	console.log(m)
+	m = {"team1":[players[p1].name, players[p2].name], "team2":[players[p3].name, players[p4].name], "score":+score_t1+"-"+score_t2};
+	console.log(m);
 	
 	var QA = Math.pow(10, t1/400);
 	var QB = Math.pow(10, t2/400);
@@ -190,7 +190,7 @@ function Submit2v2Handler () {
 	players[p3].rating += mod_team2/2;
 	players[p4].rating += mod_team2/2;
 	
-	console.log(players)
+	console.log(players);
 	SubmitMatch(m);
 	SubmitNewRatings();
 }
@@ -210,7 +210,7 @@ function SubmitMatch(m) {
 }
 
 function getPlayerDropbox (id) {
-	var dropbox_string = "<select id='"+id+"'>"
+	var dropbox_string = "<select id='"+id+"'>";
 	
 	for (var i=0; i<players.length; i++) {
 		dropbox_string += "<option value='"+i+"'>"+players[i].name+"</option>";		
@@ -218,5 +218,5 @@ function getPlayerDropbox (id) {
 	
 	dropbox_string += "</select>";
 	
-	return dropbox_string
+	return dropbox_string;
 }
