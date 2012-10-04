@@ -8,6 +8,13 @@ $(document).ready( function () {
 	$("input#submit_password").click(SubmitPasswordHandler);
 });
 
+/**
+ * Handles keypress events from the password input field. Submits the form if
+ * the enter key was pressed.
+ * 
+ * @param event
+ *            Keypress event
+ */
 function onPasswordKeypress(event) {
 	if (13 == event.which) {
 		// enter key was pressed
