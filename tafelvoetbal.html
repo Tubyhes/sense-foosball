@@ -11,8 +11,16 @@ var matches = new Array();
 var K = 32;
 
 $(document).ready( function () {
+	$("input#password").keypress(onPasswordKeypress);
 	$("input#submit_password").click(SubmitPasswordHandler);
 });
+
+function onPasswordKeypress(event) {
+	if (13 == event.which) {
+		// enter key was pressed
+		SubmitPasswordHandler();
+	}
+};
 
 function SubmitPasswordHandler () {
 	password = $("input#password").val();
