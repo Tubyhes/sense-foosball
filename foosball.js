@@ -3,10 +3,38 @@ var players;
 var matches = new Array();
 var K = 32;
 
-$(document).ready( function () {
+$(document).ready(init);
+
+/**
+ * Starts the show by checking if we can re-use our session or if we have to log
+ * in again.
+ */
+function init() {
+	
+	// handle login events
 	$("input#password").keypress(onPasswordKeypress);
 	$("input#submit_password").click(SubmitPasswordHandler);
-});
+	
+	// check for stored session ID
+	var sessionId = sessionStorage.sessionId;
+	if (undefined != sessionId && "undefined" != sessionId) {
+		// let the SenseApi object know what the stored session ID is
+		api.SetSessionId(sessionId);
+
+		// put session ID in a cookie so it gets sent with each request
+		document.cookie = "X-SESSION_ID=" + sessionId + "; path=/";
+
+		// see if the session ID actually works
+		if (getPlayerList() && getMatchList()) {
+			LoadFrontPage();			
+		} else {
+			// seems like the session ID is not right anymore
+			api.SetSessionId(null);
+			document.cookie = "X-SESSION_ID=null; expires=-1; path=/";
+			$("p#error").html("");
+		}
+	}
+};
 
 /**
  * Handles keypress events from the password input field. Submits the form if
@@ -22,13 +50,28 @@ function onPasswordKeypress(event) {
 	}
 };
 
+/**
+ * Stores the session ID in the session storage
+ */
+function storeSessionId() {
+	sessionStorage.sessionId = api.session_id;
+};
+
+/**
+ * @returns The session ID, if it exists in the session storage
+ */
+function getSessionId() {
+	return sessionStorage.sessionId;
+}
+
 function SubmitPasswordHandler () {
 	password = $("input#password").val();
 	pwd_hash = calcMD5(password);
 	
 	if(api.AuthenticateSessionId("sense-foosball", pwd_hash)) {
-		GetPlayerList();
-		GetMatchList();
+		storeSessionId();
+		getPlayerList();
+		getMatchList();
 		LoadFrontPage();
 		$("p#error").html("");
 	}
@@ -38,24 +81,43 @@ function SubmitPasswordHandler () {
 	
 }
 
-function GetPlayerList() {
-//	171759
-	if(api.SensorDataGet(171759, {"last":1})) {
+/**
+ * Tries to get the list of players from CommonSense
+ * 
+ * @returns true if the request succeeded
+ */
+function getPlayerList() {
+	var sensorId = 171759;
+	var params = {
+		"last" : 1
+	};
+	if (api.SensorDataGet(sensorId, params)) {
 		players = JSON.parse(JSON.parse(api.resp_data).data[0].value);
 		console.log(players);
-	}
-	else {
-		$("p#error").html("Cant get player list!");
+		return true;
+	} else {
+		$("p#error").html("Cannot get player list!");
+		return false;
 	}
 }
 
-function GetMatchList() {
-	if(api.SensorDataGet(171760, {"sort":"DESC"})) {
+/**
+ * Tries to get the list of matches from CommonSense
+ * 
+ * @returns true if the request succeeded
+ */
+function getMatchList() {
+	var sensorId = 171760;
+	var params = {
+		"sort" : "DESC"
+	};
+	if (api.SensorDataGet(sensorId, params)) {
 		matches = JSON.parse(api.resp_data).data;
 		console.log(matches);
-	}
-	else {
-		$("p#error").html("Cant get match history!");
+		return true;
+	} else {
+		$("p#error").html("Cannot get match history!");
+		return false;
 	}
 }
 
