@@ -121,28 +121,43 @@ function LoadFrontPage () {
 	$("input#2v2").click(Load2v2Div);
 }
 
-function GetPlayerRankingHtml () {
-	var html_string = "<table cellpadding=5><tr><th>Player Name</th><th>Rating</th></tr>";
-	
+function GetPlayerRankingHtml() {
+	var html_string = "<table cellpadding=5><tr><th>Rank</th><th>Player Name</th><th>Rating</th></tr>";
+
 	players = players.sort(players_sort);
-	
-	for (var i=0; i<players.length; i++) {
-		html_string += "<tr><td>"+players[i].name+"</td><td>"+players[i].rating+"</td></tr>";
+
+	for ( var i = 0; i < players.length; i++) {
+		html_string += "<tr><td style='text-align: right;'>" + (i + 1) + ".</td>";
+		html_string += "<td>" + players[i].name + "</td>";
+		html_string += "<td>" + players[i].rating + "</td></tr>";
 	}
-	
+
 	html_string += "</table>";
-	
+
 	return html_string;
 }
 
 function GetMatchHistoryHtml () {
 	var html_string = "<table cellpadding=5><tr><th>Date</th><th>Team 1</th><th>Team 2</th><th>Score</th></tr>";
-	
-	for(var i=0; i<matches.length; i++) {
-		var date = new Date(parseInt(matches[i].date)*1000);
+
+		for ( var i = 0; i < matches.length; i++) {
+		var date = new Date(parseInt(matches[i].date) * 1000);
 		var m = JSON.parse(matches[i].value);
-		console.log(m);
-		html_string += "<tr><td>"+date.toDateString()+"</td><td>"+m.team1.join(", ")+"</td><td>"+m.team2.join(", ")+"</td><td>"+m.score+"</td></tr>";
+		var score1 = m.score.split("-")[0];
+		html_string += "<tr>";
+		html_string += "<td>" + date.toDateString() + "</td>";
+		// emphasize the winning team
+		if (score1 == "10") {
+			html_string += "<td><strong>" + m.team1.join(", ")
+					+ "</strong></td>";
+			html_string += "<td>" + m.team2.join(", ") + "</td>";
+		} else {
+			html_string += "<td>" + m.team1.join(", ") + "</td>";
+			html_string += "<td><strong>" + m.team2.join(", ")
+					+ "</strong></td>";
+		}
+		html_string += "<td>" + m.score + "</td>";
+		html_string += "</tr>";
 	}
 
 	html_string += "</table>";
