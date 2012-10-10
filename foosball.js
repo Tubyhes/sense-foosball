@@ -174,18 +174,34 @@ function players_sort (a, b) {
 		return 0;
 }
 
-function Load1v1Div () {
-	$("div#interaction").html("<table><tr><td>Player 1</td><td><input type='text' id='team1_score'></input></td><td>Player 2</td><td><input type='text' id='team2_score'></input></td></tr><tr><td colspan=2>"+getPlayerDropbox('player1')+"</td><td colspan=2>"+getPlayerDropbox('player2')+"</td></tr></table><form><input type='button' id='submit1v1' value='submit'></input></form>		");
-	$("input#submit1v1").click(Submit1v1Handler);
+function Load1v1Div() {
+	var table = "<table>";
+	table += "<tr><th colspan='2' style='text-align:left;'>Player 1</th><th colspan='2' style='text-align:left;'>Player 2</th></tr>";
+	table += "<tr><td>Name:</td><td>" + getPlayerDropbox('player1')
+			+ "</td><td>Name:</td><td>" + getPlayerDropbox('player2')
+			+ "</td></tr>";
+	table += "<tr><td>Score:</td><td><input type='text' id='team1_score'></input></td><td>Score:</td><td><input type='text' id='team2_score'></input></td></tr>";
+	table += "</table>";
+	var form = "<form action='javascript:submit1v1();'>" + table
+			+ "<input type='submit' value='Submit'></form>";
+	$("div#interaction").html(form);
 }
 
-function Load2v2Div () {
-	$("div#interaction").html("<table><tr><td>Team 1</td><td><input type='text' id='team1_score'></input></td><td>Team 2</td><td><input type='text' id='team2_score'></input></td></tr><tr><td>Player 1</td><td>Player 2</td><td>Player 3</td><td>Player 4</td></tr><tr><td>"+getPlayerDropbox('player1')+"</td><td>"+getPlayerDropbox('player2')+"</td><td>"+getPlayerDropbox('player3')+"</td><td>"+getPlayerDropbox('player4')+"</td></tr></table><form><input type='button' id='submit2v2' value='submit'></input></form>		");
-	$("input#submit2v2").click(Submit2v2Handler);
-
+function Load2v2Div() {
+	var table = "<table>";
+	table += "<tr><th colspan='3' style='text-align:left;'>Team 1</th><th colspan='3' style='text-align:left;'>Team 2</th></tr>";
+	table += "<tr><td>Players:</td><td>" + getPlayerDropbox('player1')
+			+ "</td><td>" + getPlayerDropbox('player2')
+			+ "</td><td>Players:</td><td>" + getPlayerDropbox('player3')
+			+ "</td><td>" + getPlayerDropbox('player4') + "</td></tr>";
+	table += "<tr><td>Score:</td><td colspan='2'><input type='text' id='team1_score'></input></td><td>Score:</td><td colspan='2'><input type='text' id='team2_score'></input></td></tr>";
+	table += "</table>";
+	var form = "<form action='javascript:submit2v2();'>" + table
+			+ "<input type='submit' value='Submit'></input></form>";
+	$("div#interaction").html(form);
 }
 
-function Submit1v1Handler () {
+function submit1v1() {
 	var p1 = $("select#player1").val();
 	var p2 = $("select#player2").val();
 	
@@ -219,7 +235,7 @@ function Submit1v1Handler () {
 	SubmitNewRatings();
 }
 
-function Submit2v2Handler () {
+function submit2v2() {
 	var p1 = $("select#player1").val();
 	var p2 = $("select#player2").val();
 	var p3 = $("select#player3").val();
