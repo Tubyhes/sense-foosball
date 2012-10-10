@@ -11,10 +11,6 @@ $(document).ready(init);
  */
 function init() {
 	
-	// handle login events
-	$("input#password").keypress(onPasswordKeypress);
-	$("input#submit_password").click(SubmitPasswordHandler);
-	
 	// check for stored session ID
 	var sessionId = sessionStorage.sessionId;
 	if (undefined != sessionId && "undefined" != sessionId) {
@@ -37,20 +33,6 @@ function init() {
 };
 
 /**
- * Handles keypress events from the password input field. Submits the form if
- * the enter key was pressed.
- * 
- * @param event
- *            Keypress event
- */
-function onPasswordKeypress(event) {
-	if (13 == event.which) {
-		// enter key was pressed
-		SubmitPasswordHandler();
-	}
-};
-
-/**
  * Stores the session ID in the session storage
  */
 function storeSessionId() {
@@ -62,9 +44,12 @@ function storeSessionId() {
  */
 function getSessionId() {
 	return sessionStorage.sessionId;
-}
+};
 
-function SubmitPasswordHandler () {
+/**
+ * Checks the password at CommonSense and starts loading the front page if it is correct.
+ */
+function submitPassword() {
 	password = $("input#password").val();
 	pwd_hash = calcMD5(password);
 	
@@ -79,7 +64,7 @@ function SubmitPasswordHandler () {
 		$("p#error").html("Wrong password!");
 	}
 	
-}
+};
 
 /**
  * Tries to get the list of players from CommonSense

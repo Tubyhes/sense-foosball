@@ -29,8 +29,10 @@
 <p id="error"></p>
 <div id="interaction" class="interaction">
 	<p>Please enter the Sense Foosball password:</p>
-	<input type="password" id="password"></input>
-	<form><input type="button" id="submit_password" value="Submit Password"></input></form>
+	<form id="loginForm" action="javascript:submitPassword();">
+	   <input type="password" id="password"></input>
+	   <input type="submit" value="Submit Password"></input>
+	</form>
 </div>
 </body>
 </html
