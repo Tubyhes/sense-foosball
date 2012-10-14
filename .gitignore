@@ -1,1 +1,4 @@
 install_live.sh
+# Eclipse stuff
+.settings/
+.project
