@@ -43,7 +43,11 @@ function onNavigate() {
 		show2v2Page();
 	} else {
 		console.log("Unexpected hash token: '" + hash + "'");
-		goTo("main");
+		if (loggedIn) {
+			goTo("main");
+		} else {
+			goTo("login");
+		}
 	}
 };
 
