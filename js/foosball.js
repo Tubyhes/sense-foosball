@@ -10,27 +10,54 @@ $(document).ready(init);
  * in again.
  */
 function init() {
-	
+
 	// check for stored session ID
-	var sessionId = sessionStorage.sessionId;
+	var sessionId = getSessionId();
 	if (undefined != sessionId && "undefined" != sessionId) {
 		// let the SenseApi object know what the stored session ID is
 		api.SetSessionId(sessionId);
 
 		// put session ID in a cookie so it gets sent with each request
 		document.cookie = "X-SESSION_ID=" + sessionId + "; path=/";
+	}
 
-		// see if the session ID actually works
-		if (getPlayerList() && getMatchList()) {
-			LoadFrontPage();			
+	// listen for navigation events
+	window.onhashchange = onNavigate;
+	onNavigate();
+};
+
+/**
+ * Changes content based on the URL's hash value. This is the main navigation
+ * tool within the application.
+ */
+function onNavigate() {
+	var hash = location.hash;
+	var loggedIn = undefined != getSessionId() && "undefined" != getSessionId();
+	if (hash == "#login") {
+		showLoginPage();
+	} else if (hash == "#main" && loggedIn) {
+		showMainPage();
+	} else if (hash == "#1v1" && loggedIn) {
+		show1v1Page();
+	} else if (hash == "#2v2" && loggedIn) {
+		show2v2Page();
+	} else {
+		console.log("Unexpected hash token: '" + hash + "'");
+		if (loggedIn) {
+			goTo("main");
 		} else {
-			// seems like the session ID is not right anymore
-			api.SetSessionId(null);
-			document.cookie = "X-SESSION_ID=null; expires=-1; path=/";
-			$("p#error").html("");
+			goTo("login");
 		}
 	}
 };
+
+function onSessionError() {
+	console.log("Session error!");
+	api.SetSessionId(null);
+	document.cookie = "X-SESSION_ID=null; expires=-1; path=/";
+	$("p#error").html("Session expired");
+	goTo("login");
+}
 
 /**
  * Stores the session ID in the session storage
@@ -47,23 +74,19 @@ function getSessionId() {
 };
 
 /**
- * Checks the password at CommonSense and starts loading the front page if it is correct.
+ * Checks the password at CommonSense and starts loading the front page if it is
+ * correct.
  */
 function submitPassword() {
 	password = $("input#password").val();
 	pwd_hash = calcMD5(password);
-	
-	if(api.AuthenticateSessionId("sense-foosball", pwd_hash)) {
+	if (api.AuthenticateSessionId("sense-foosball", pwd_hash)) {
 		storeSessionId();
-		getPlayerList();
-		getMatchList();
-		LoadFrontPage();
 		$("p#error").html("");
-	}
-	else {
+		goTo("main");
+	} else {
 		$("p#error").html("Wrong password!");
 	}
-	
 };
 
 /**
@@ -78,7 +101,6 @@ function getPlayerList() {
 	};
 	if (api.SensorDataGet(sensorId, params)) {
 		players = JSON.parse(JSON.parse(api.resp_data).data[0].value);
-		console.log(players);
 		return true;
 	} else {
 		$("p#error").html("Cannot get player list!");
@@ -98,7 +120,6 @@ function getMatchList() {
 	};
 	if (api.SensorDataGet(sensorId, params)) {
 		matches = JSON.parse(api.resp_data).data;
-		console.log(matches);
 		return true;
 	} else {
 		$("p#error").html("Cannot get match history!");
@@ -106,19 +127,59 @@ function getMatchList() {
 	}
 }
 
-function LoadFrontPage () {
-	$("div#interaction").html("<form><input type='button' id='1v1' value='1 V 1'></input></form>   <form><input type='button' id='2v2' value='2 V 2'></input></form>");
+/**
+ * Changes the location hash to the specified location.
+ * 
+ * @param place
+ *            Hash for new place to go to
+ */
+function goTo(place) {
+	// console.log("Go to '" + place + "'");
+	location.hash = place;
+}
+
+/**
+ * Shows main page. Gets the list of players and matches before rendering the
+ * content.
+ */
+function showMainPage() {
+	// console.log("Show main page");
+
+	// make sure we have the lists of players and matches available
+	if (undefined == players || [] == matches) {
+		// try to get the player list and match list
+		if (getPlayerList() && getMatchList()) {
+			// players and matches are ready to render
+		} else {
+			onSessionError();
+		}
+	}
+
+	var button1v1 = "<input type='button' id='1v1' value='1 V 1'></input>";
+	var button2v2 = "<input type='button' id='2v2' value='2 V 2'></input>";
+	$("div#interaction").html("<form>" + button1v1 + button2v2 + "</form>");
 	$("div#interaction").append(GetPlayerRankingHtml());
 	$("div#interaction").append(GetMatchHistoryHtml());
 
-//	var html_string = " "+
-//		"<table>"+
-//			"<tr>"+
-//				"<td><form><input type='button' id='1v1' value='1 V 1'></input></form></td>"+
-//				"<td rowspan=2>"+GetPlayerRankingString+"
+	function on1v1Click() {
+		goTo("1v1");
+	}
+	$("input#1v1").unbind('click');
+	$("input#1v1").click(on1v1Click);
 
-	$("input#1v1").click(Load1v1Div);
-	$("input#2v2").click(Load2v2Div);
+	function on2v2Click() {
+		goTo("2v2");
+	}
+	$("input#2v2").unbind('click');
+	$("input#2v2").click(on2v2Click);
+}
+
+/**
+ * Shows the login page.
+ */
+function showLoginPage() {
+	// console.log("Show login page");
+	$("div#interaction").html("<p>Please enter the Sense Foosball password:</p><form id='loginForm' action='javascript:submitPassword();'><input type='password' id='password'></input><input type='submit' value='Submit Password'></input></form>");
 }
 
 function GetPlayerRankingHtml() {
@@ -174,7 +235,19 @@ function players_sort (a, b) {
 		return 0;
 }
 
-function Load1v1Div() {
+function show1v1Page() {
+	// console.log("Show 1v1 page");
+
+	// make sure we have the lists of players and matches available
+	if (undefined == players || [] == matches) {
+		// try to get the player list and match list
+		if (getPlayerList() && getMatchList()) {
+			// players and matches are ready to render
+		} else {
+			onSessionError();
+		}
+	}
+
 	var table = "<table>";
 	table += "<tr><th colspan='2' style='text-align:left;'>Player 1</th><th colspan='2' style='text-align:left;'>Player 2</th></tr>";
 	table += "<tr><td>Name:</td><td>" + getPlayerDropbox('player1')
@@ -187,7 +260,19 @@ function Load1v1Div() {
 	$("div#interaction").html(form);
 }
 
-function Load2v2Div() {
+function show2v2Page() {
+	// console.log("Show 2v2 page");
+
+	// make sure we have the lists of players and matches available
+	if (undefined == players || [] == matches) {
+		// try to get the player list and match list
+		if (getPlayerList() && getMatchList()) {
+			// players and matches are ready to render
+		} else {
+			onSessionError();
+		}
+	}
+
 	var table = "<table>";
 	table += "<tr><th colspan='3' style='text-align:left;'>Team 1</th><th colspan='3' style='text-align:left;'>Team 2</th></tr>";
 	table += "<tr><td>Players:</td><td>" + getPlayerDropbox('player1')
@@ -282,7 +367,7 @@ function submit2v2() {
 
 function SubmitNewRatings () {
 	if (api.SensorDataPost(171759, {"data":[{"value":players}]}))
-		LoadFrontPage();
+		goTo("main");
 	else 
 		alert("Submitting new rankings failed!");
 }
