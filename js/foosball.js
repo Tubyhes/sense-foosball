@@ -204,11 +204,12 @@ function GetMatchHistoryHtml () {
 		for ( var i = 0; i < matches.length; i++) {
 		var date = new Date(parseInt(matches[i].date) * 1000);
 		var m = JSON.parse(matches[i].value);
-		var score1 = m.score.split("-")[0];
+		var score1 = parseInt(m.score.split("-")[0]);
+		var score2 = parseInt(m.score.split("-")[1]);
 		html_string += "<tr>";
 		html_string += "<td>" + date.toDateString() + "</td>";
 		// emphasize the winning team
-		if (score1 == "10") {
+		if (score1 > score2) {
 			html_string += "<td><strong>" + m.team1.join(", ")
 					+ "</strong></td>";
 			html_string += "<td>" + m.team2.join(", ") + "</td>";
