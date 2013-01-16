@@ -306,7 +306,7 @@ function submit1v1() {
 	var QA = Math.pow(10, players[p1].rating/400);
 	var QB = Math.pow(10, players[p2].rating/400);
 	var EA = QA/(QA+QB);
-	var EB = QA/(QA+QB);
+	var EB = QB/(QA+QB);
 	var SA = (score_t1 > score_t2) ? 1 : 0;
 	var SB = 1 - SA;
 	var RA = players[p1].rating + K * (SA - EA);
@@ -346,7 +346,7 @@ function submit2v2() {
 	var QA = Math.pow(10, t1/400);
 	var QB = Math.pow(10, t2/400);
 	var EA = QA/(QA+QB);
-	var EB = QA/(QA+QB);
+	var EB = QB/(QA+QB);
 	var SA = (score_t1 > score_t2) ? 1 : 0;
 	var SB = 1 - SA;
 	var mod_team1 = K * (SA - EA);
